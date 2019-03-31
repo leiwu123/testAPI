@@ -109,15 +109,20 @@ class RolesView(APIView):
 #             ret.append({'id':item.id, 'title':item.title})
 #         return ret
 
+class MyField(serializers.CharField):  ## rarely used
+    def to_representation(self, value):    
+        return "xxxx"
+
 class UserInfoSerializer(serializers.ModelSerializer):
     oooo = serializers.CharField(source="get_user_type_display")
     rls = serializers.SerializerMethodField()
     gp = serializers.CharField(source="group.title")
+    x1 = MyField(source='username')
 
     class Meta:
         model = models.UserInfo
         # fields = "__all__"
-        fields = ['id', 'username', 'password', 'oooo', 'rls', 'gp']
+        fields = ['id', 'username', 'password', 'oooo', 'rls', 'gp', 'x1']
 
 
     def get_rls(self, row):  ## same can be applied to group and user_type
