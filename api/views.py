@@ -1,6 +1,8 @@
 from django.shortcuts import render, HttpResponse
 from rest_framework.views import APIView
 from django.urls import reverse
+from api import models
+import json
 # from rest_framework.request import Request
 # from rest_framework.versioning import BaseVersioning
 # from rest_framework.versioning import QueryParameterVersioning
@@ -37,10 +39,10 @@ class DjangoView(APIView):
         return HttpResponse('POST & Body')
 
 
-from rest_framework.parsers import JSONParser, FormParser
+# from rest_framework.parsers import JSONParser, FormParser
 
 class ParserView(APIView):
-    parser_classes = [JSONParser,FormParser]
+    # parser_classes = [JSONParser,FormParser]
     # can parser both Json and x-www-form-urlencoded data
     def post(self, request, *args, **kwargs):
         """
@@ -49,6 +51,85 @@ class ParserView(APIView):
         b. {'name':'alex', age:18}
         """
 
-        print(request.data) ## getting parsered data, not using request.body with JSON data
+        print(request.data) ## getting parsered data, not using request.body with restframework Parser classes
 
         return HttpResponse('POST & Body')
+
+
+from rest_framework import serializers
+
+class RolesSerializer(serializers.Serializer):
+    id = serializers.IntegerField()  ## same as below
+    title = serializers.CharField()  ## 'title' variable name needs to match the database
+
+
+class RolesView(APIView):
+    def get(self, request, *args, **kwargs):
+
+        # roles = models.Role.objects.all().values('id', 'title')
+        # roles = list(roles)
+        # ret = json.dumps(roles, ensure_ascii=False)
+        # # ret = json.dumps(roles) ## cannot directly use roles as its django querysets
+
+        # roles = models.Role.objects.all()
+        # ser = RolesSerializer(instance=roles, many=True)
+        # # ser.data
+        # ret = json.dumps(ser.data, ensure_ascii=False)
+
+        # to return only the first item
+        roles = models.Role.objects.all().first() 
+        ser = RolesSerializer(instance=roles, many=False)
+        ret = json.dumps(ser.data, ensure_ascii=False)
+
+        return HttpResponse(ret)
+
+class UserInfoSerializer(serializers.Serializer):
+
+    # user_type = serializers.IntegerField()
+    # xxx = serializers.CharField(source="user_type")
+    """
+    returned values from above
+    [{"xxx": "1", "username": "王冰", "password": "124"}, {"xxx": "1", "username": "刘莫", "password": "124"}, {"xxx": "2", "username": "张坤", "password": "124"}, {"xxx": "3", "username": "陆华", "password": "124"}]
+    """
+    user_type = serializers.CharField(source="get_user_type_display")
+    """
+    [{"user_type": "普通用户", "username": "王冰", "password": "124"}, {"user_type": "普通用户", "username": "刘莫", "password": "124"}]
+    """
+    username = serializers.CharField()
+    password = serializers.CharField()
+    gp = serializers.CharField(source="group.title")
+    # rls = serializers.CharField(source="roles.all")
+    rls = serializers.SerializerMethodField()
+
+    def get_rls(self, row):  ## same can be applied to group and user_type
+        role_obj_list = row.roles.all()
+
+        ret = []
+        for item in role_obj_list:
+            ret.append({'id':item.id, 'title':item.title})
+
+        return ret
+
+
+
+
+
+class UserInfoView(APIView):
+    def get(self, request, *args, **kwargs):
+
+        # roles = models.Role.objects.all().values('id', 'title')
+        # roles = list(roles)
+        # ret = json.dumps(roles, ensure_ascii=False)
+        # # ret = json.dumps(roles) ## cannot directly use roles as its django querysets
+
+        # roles = models.Role.objects.all()
+        # ser = RolesSerializer(instance=roles, many=True)
+        # # ser.data
+        # ret = json.dumps(ser.data, ensure_ascii=False)
+
+        # to return only the first item
+        roles = models.UserInfo.objects.all()
+        ser = UserInfoSerializer(instance=roles, many=True)
+        ret = json.dumps(ser.data, ensure_ascii=False)
+        print(ret)
+        return HttpResponse(ret)
