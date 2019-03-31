@@ -83,23 +83,42 @@ class RolesView(APIView):
 
         return HttpResponse(ret)
 
-class UserInfoSerializer(serializers.Serializer):
+# class UserInfoSerializer(serializers.Serializer):
 
-    # user_type = serializers.IntegerField()
-    # xxx = serializers.CharField(source="user_type")
-    """
-    returned values from above
-    [{"xxx": "1", "username": "王冰", "password": "124"}, {"xxx": "1", "username": "刘莫", "password": "124"}, {"xxx": "2", "username": "张坤", "password": "124"}, {"xxx": "3", "username": "陆华", "password": "124"}]
-    """
-    user_type = serializers.CharField(source="get_user_type_display")
-    """
-    [{"user_type": "普通用户", "username": "王冰", "password": "124"}, {"user_type": "普通用户", "username": "刘莫", "password": "124"}]
-    """
-    username = serializers.CharField()
-    password = serializers.CharField()
-    gp = serializers.CharField(source="group.title")
-    # rls = serializers.CharField(source="roles.all")
+#     # user_type = serializers.IntegerField()
+#     # xxx = serializers.CharField(source="user_type")
+#     """
+#     returned values from above
+#     [{"xxx": "1", "username": "王冰", "password": "124"}, {"xxx": "1", "username": "刘莫", "password": "124"}, {"xxx": "2", "username": "张坤", "password": "124"}, {"xxx": "3", "username": "陆华", "password": "124"}]
+#     """
+#     user_type = serializers.CharField(source="get_user_type_display")
+#     """
+#     [{"user_type": "普通用户", "username": "王冰", "password": "124"}, {"user_type": "普通用户", "username": "刘莫", "password": "124"}]
+#     """
+#     username = serializers.CharField()
+#     password = serializers.CharField()
+#     gp = serializers.CharField(source="group.title")
+#     # rls = serializers.CharField(source="roles.all")
+#     rls = serializers.SerializerMethodField()
+
+#     def get_rls(self, row):  ## same can be applied to group and user_type
+#         role_obj_list = row.roles.all()
+
+#         ret = []
+#         for item in role_obj_list:
+#             ret.append({'id':item.id, 'title':item.title})
+#         return ret
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    oooo = serializers.CharField(source="get_user_type_display")
     rls = serializers.SerializerMethodField()
+    gp = serializers.CharField(source="group.title")
+
+    class Meta:
+        model = models.UserInfo
+        # fields = "__all__"
+        fields = ['id', 'username', 'password', 'oooo', 'rls', 'gp']
+
 
     def get_rls(self, row):  ## same can be applied to group and user_type
         role_obj_list = row.roles.all()
@@ -107,11 +126,7 @@ class UserInfoSerializer(serializers.Serializer):
         ret = []
         for item in role_obj_list:
             ret.append({'id':item.id, 'title':item.title})
-
         return ret
-
-
-
 
 
 class UserInfoView(APIView):
@@ -124,7 +139,7 @@ class UserInfoView(APIView):
 
         # roles = models.Role.objects.all()
         # ser = RolesSerializer(instance=roles, many=True)
-        # # ser.data
+        # # ser.datasource="roles.all"
         # ret = json.dumps(ser.data, ensure_ascii=False)
 
         # to return only the first item
