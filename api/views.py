@@ -134,10 +134,14 @@ class RolesView(APIView):
 #         return ret
 
 class UserInfoSerializer(serializers.ModelSerializer):
+    group = serializers.HyperlinkedIdentityField(view_name='gp', lookup_field='group_id', lookup_url_kwarg='xxx') 
+    ## above provides a link rather than data, xxx (or normally use pk) corresponds to the xxx in urls.py for gp view
+
     class Meta:
         model = models.UserInfo
         fields = "__all__"
-        depth = 1
+        depth = 1  ## 1-10  but should be no more than 3 to 4 in use otherwise taking too much time retrieving data
+
 
 class UserInfoView(APIView):
     def get(self, request, *args, **kwargs):
@@ -154,7 +158,23 @@ class UserInfoView(APIView):
 
         # to return only the first item
         roles = models.UserInfo.objects.all()
-        ser = UserInfoSerializer(instance=roles, many=True)
+        ser = UserInfoSerializer(instance=roles, many=True, context={'request': request})
+        ## needs to add the context={'request': request} for the group hyperlink to work
         ret = json.dumps(ser.data, ensure_ascii=False)
-        print(ret)
+        # print(ret)
+        return HttpResponse(ret)
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.UserGroup
+        fields = "__all__"
+
+class GroupView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get('xxx')
+        obj = models.UserGroup.objects.filter(pk=pk).first()
+        ser = GroupSerializer(instance=obj, many=False)
+        ret = json.dumps(ser.data, ensure_ascii=False)
         return HttpResponse(ret)
