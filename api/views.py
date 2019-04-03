@@ -164,6 +164,10 @@ class UserInfoView(APIView):
         # print(ret)
         return HttpResponse(ret)
 
+    def post(self, request, *args, **kwargs):
+        print(request.data)
+
+
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -178,3 +182,42 @@ class GroupView(APIView):
         ser = GroupSerializer(instance=obj, many=False)
         ret = json.dumps(ser.data, ensure_ascii=False)
         return HttpResponse(ret)
+
+
+
+##########################################
+class XXValidator(object):
+    def __init__(self, base):
+        # self.base = str(base)
+        self.base = base
+
+    # def __call__(self, value):
+    #     if value != self.base:
+    #         message = 'This field must be %s.' % self.base
+    #         raise serializers.ValidationError(message)
+
+    def __call__(self, value):
+        if not value.startswith(self.base):
+            message = '标题必须以%s为开头' % self.base
+            raise serializers.ValidationError(message)
+
+
+    def set_context(self, serializer_field):
+        pass
+
+class UserGroupSerializer(serializers.Serializer):
+    title = serializers.CharField(error_messages={'required':'标题不能为空'}, validators=[XXValidator('老男人')])   # put here the field you want to validate
+
+class UserGroupView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        print(request.data)
+        ## {'name': 'dft', 'title': 'dtf'}
+        ser = UserGroupSerializer(data=request.data)
+        if ser.is_valid():
+            print(ser.validated_data['title'])
+            ## dtf
+        else:
+            print(ser.errors)
+        
+        return HttpResponse('提交数据')
