@@ -233,12 +233,27 @@ class UserGroupView(APIView):
 
 from api.utils.serializers.pager import PagerSerialiser
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination, CursorPagination
 
-class MyPageNumberPagination(PageNumberPagination):
+# class MyPageNumberPagination(PageNumberPagination):
 
-    page_size = 2
-    page_query_param = 'page'
+#     page_size = 2
+#     page_query_param = 'page'
+#     page_size_query_param = 'size'
+#     max_page_size = 18
+
+# class MyPageNumberPagination(LimitOffsetPagination):
+
+#     default_limit = 5
+#     limit_query_param = 'limit'
+#     offset_query_param = 'offset'
+#     max_limit = 15
+
+class MyPageNumberPagination(CursorPagination):
+    cursor_query_param = 'cursor'
+    page_size = 5
+    ordering = 'id'
+
     page_size_query_param = 'size'
     max_page_size = 18
 
@@ -248,6 +263,11 @@ class Pager1View(APIView):
         roles = models.Role.objects.all()
 
         # pg = PageNumberPagination()
+        # pg = MyPageNumberPagination()
+        # pg = LimitOffsetPagination()
+        # http://localhost:8000/api/v1/pager1/?offset=4&limit=5
+        # pg = MyPageNumberPagination()
+        # pg = CursorPagination()
         pg = MyPageNumberPagination()
 
         pager_roles = pg.paginate_queryset(queryset=roles, request=request, view=self)
