@@ -136,10 +136,13 @@ class RolesView(APIView):
 class UserInfoSerializer(serializers.ModelSerializer):
     group = serializers.HyperlinkedIdentityField(view_name='gp', lookup_field='group_id', lookup_url_kwarg='xxx') 
     ## above provides a link rather than data, xxx (or normally use pk) corresponds to the xxx in urls.py for gp view
+    # pid = serializers.CharField(source='id')
+    # pwd = serializers.CharField(source='password')
 
     class Meta:
         model = models.UserInfo
         fields = "__all__"
+        # fields = ['pid', 'username', 'password', 'group', 'roles', 'pwd']
         depth = 1  ## 1-10  but should be no more than 3 to 4 in use otherwise taking too much time retrieving data
 
 
@@ -208,6 +211,11 @@ class XXValidator(object):
 class UserGroupSerializer(serializers.Serializer):
     title = serializers.CharField(error_messages={'required':'标题不能为空'}, validators=[XXValidator('老男人')])   # put here the field you want to validate
 
+    # def validate_title(self, value):
+    #     from rest_framework import exceptions
+    #     raise exceptions.ValidationError('看你不顺眼')
+    #     return value
+
 class UserGroupView(APIView):
 
     def post(self, request, *args, **kwargs):
@@ -221,3 +229,33 @@ class UserGroupView(APIView):
             print(ser.errors)
         
         return HttpResponse('提交数据')
+
+
+from api.utils.serializers.pager import PagerSerialiser
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+
+class MyPageNumberPagination(PageNumberPagination):
+
+    page_size = 2
+    page_query_param = 'page'
+    page_size_query_param = 'size'
+    max_page_size = 18
+
+class Pager1View(APIView):
+
+    def get(self, request, *args, **kwargs):
+        roles = models.Role.objects.all()
+
+        # pg = PageNumberPagination()
+        pg = MyPageNumberPagination()
+
+        pager_roles = pg.paginate_queryset(queryset=roles, request=request, view=self)
+        # print(pager_roles)
+
+        ser = PagerSerialiser(instance=pager_roles, many=True)
+        # print(ser.data)
+        # ret = json.dumps(ser.data, ensure_ascii=False)
+        # return HttpResponse(ret)
+        # return Response(ser.data)  
+        return pg.get_paginated_response(ser.data)  
