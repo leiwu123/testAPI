@@ -334,3 +334,25 @@ class View1View(ModelViewSet):
     queryset= models.Role.objects.all()
     serializer_class = PagerSerialiser
     pagination_class = PageNumberPagination
+
+
+
+######################################
+
+class TestView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        roles = models.Role.objects.all()
+        
+        # pg = CursorPagination()
+        pg = MyPageNumberPagination()
+
+        pager_roles = pg.paginate_queryset(queryset=roles, request=request, view=self)
+        # print(pager_roles)
+
+        ser = PagerSerialiser(instance=pager_roles, many=True)
+        # print(ser.data)
+        # ret = json.dumps(ser.data, ensure_ascii=False)
+        # return HttpResponse(ret)
+        return Response(ser.data)  
+        # return pg.get_paginated_response(ser.data)  
