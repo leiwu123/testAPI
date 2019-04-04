@@ -128,5 +128,6 @@ REST_FRAMEWORK = {
     "VERSION_PARAM": 'version',
     "DEFAULT_PARSER_CLASSES":['rest_framework.parsers.JSONParser', 'rest_framework.parsers.FormParser'],
     # "DEFAULT_PARSER_CLASSES":['rest_framework.parsers.JSONParser',]
-    # "PAGE_SIZE": 2
+    "DEFAULT_PAGINATION_CLASS": None,
+    "PAGE_SIZE": 2
 }

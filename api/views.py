@@ -252,7 +252,7 @@ from rest_framework.pagination import PageNumberPagination, LimitOffsetPaginatio
 class MyPageNumberPagination(CursorPagination):
     cursor_query_param = 'cursor'
     page_size = 5
-    ordering = 'id'
+    ordering = 'id'  ## important .. must define the property used for retrieving the data
 
     page_size_query_param = 'size'
     max_page_size = 18
@@ -279,3 +279,58 @@ class Pager1View(APIView):
         # return HttpResponse(ret)
         # return Response(ser.data)  
         return pg.get_paginated_response(ser.data)  
+
+
+# from api.utils.serializers.pager import PagerSerialiser
+# from rest_framework.generics import GenericAPIView
+# class View1View(GenericAPIView):
+#     queryset= models.Role.objects.all()
+#     serializer_class = PagerSerialiser
+#     pagination_class = PageNumberPagination
+
+#     def get(self, request, *args, **kwargs):
+#         roles = self.get_queryset()
+#         print(roles)
+#         pager_roles = self.paginate_queryset(roles)
+#         print(pager_roles)
+#         ser = self.get_serializer(instance=pager_roles, many=True)
+#         return Response(ser.data)
+
+
+# from api.utils.serializers.pager import PagerSerialiser
+# from rest_framework.viewsets import GenericViewSet
+# class View1View(GenericViewSet):
+#     queryset= models.Role.objects.all()
+#     serializer_class = PagerSerialiser
+#     pagination_class = PageNumberPagination
+
+#     def list(self, request, *args, **kwargs):
+#         roles = self.get_queryset()
+#         print(roles)
+#         pager_roles = self.paginate_queryset(roles)
+#         print(pager_roles)
+#         ser = self.get_serializer(instance=pager_roles, many=True)
+#         return Response(ser.data)
+
+
+from api.utils.serializers.pager import PagerSerialiser
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.mixins import ListModelMixin, CreateModelMixin
+
+# class View1View(ListModelMixin, CreateModelMixin, GenericViewSet):
+#     queryset= models.Role.objects.all()
+#     serializer_class = PagerSerialiser
+#     pagination_class = PageNumberPagination
+
+    # def list(self, request, *args, **kwargs):
+    #     roles = self.get_queryset()
+    #     print(roles)
+    #     pager_roles = self.paginate_queryset(roles)
+    #     print(pager_roles)
+    #     ser = self.get_serializer(instance=pager_roles, many=True)
+    #     return Response(ser.data)
+
+class View1View(ModelViewSet):
+    queryset= models.Role.objects.all()
+    serializer_class = PagerSerialiser
+    pagination_class = PageNumberPagination
